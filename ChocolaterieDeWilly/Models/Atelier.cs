@@ -85,7 +85,15 @@ namespace ChocolaterieDeWilly.Models
         /// <param name="dateLimite">La date avant laquelle le lot doit être fabriqué.</param>
         public void PlanifierLot(string nom, int quantite, Masse poidsUnitaire, DateTime dateLimite)
         {
+            //Création
+            LotProduction NouveauLot = new LotProduction(_prochainNumeroLot,nom,quantite,poidsUnitaire,dateLimite);
+            _prochainNumeroLot++;
 
+            //Validation
+            ValiderLot(NouveauLot);
+
+            //Ajout aux lots existant
+            Lots.Add(NouveauLot);
         }
 
         /// <summary>
@@ -144,6 +152,12 @@ namespace ChocolaterieDeWilly.Models
             {
                 throw new ReserveInsuffisanteException("La réserve de chocolat est insuffisante.");
             }
+            if (nouvelleQuantite > 0)
+            {
+                lot.Creation.Quantite = nouvelleQuantite;
+            }
+
+            
 
         }
 
@@ -219,6 +233,9 @@ namespace ChocolaterieDeWilly.Models
 
             Masse requisConverti = chocolatRequis.ConvertirEn(ReserveChocolat.Unite);
             ReserveChocolat = new Masse(ReserveChocolat.Valeur - requisConverti.Valeur, ReserveChocolat.Unite);
+
+            //CORRECTION: Le code manquait le transfer de status de "Planifie" à "Termine". Cela change le status a terminé. 
+            lot.Statut = StatutLot.Termine;
 
             CacherTickets(lot);
         }
@@ -303,6 +320,18 @@ namespace ChocolaterieDeWilly.Models
         /// <param name="lot">Le lot qui vient d'être terminé.</param>
         private void CacherTickets(LotProduction lot)
         {
+            int numeroTicket = 1;
+            if (_compteurUnites == IntervalleTicket)
+            {
+                lot.AjouterTicket(numeroTicket);
+                if (numeroTicket > MaxTicketsOr)
+                {
+                    numeroTicket++;
+                }
+                
+            }
+            
+            
         }
     }
 }
